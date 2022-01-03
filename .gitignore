@@ -5,3 +5,4 @@ doc
 config/*.local.exs
 .editorconfig
 .elixir_ls
+.env

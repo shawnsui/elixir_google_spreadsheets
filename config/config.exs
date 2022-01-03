@@ -27,8 +27,6 @@ use Mix.Config
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
 #
-config :goth,
-  json: "./config/service_account.json" |> File.read!()
 
 config :elixir_google_spreadsheets,
   max_rows_per_request: 301,
@@ -37,7 +35,7 @@ config :elixir_google_spreadsheets,
 
 config :elixir_google_spreadsheets, :client,
   request_workers: 50,
-  max_demand: 100,
+  max_demand: 500,
   max_interval: :timer.minutes(1),
   interval: 100,
   result_timeout: :timer.minutes(10),

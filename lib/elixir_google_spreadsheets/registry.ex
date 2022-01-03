@@ -108,7 +108,7 @@ defmodule GSS.Registry do
 
   @spec refresh_token() :: map()
   defp refresh_token do
-    {:ok, token} = Goth.Token.for_scope(@auth_scope)
+    {:ok, token} = Goth.fetch(GSS.Goth)
     token
   end
 

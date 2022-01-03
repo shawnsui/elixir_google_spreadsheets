@@ -13,6 +13,6 @@ defmodule GSS.Supervisor do
       {GSS.Client.Supervisor, []}
     ]
 
-    Supervisor.start_link(children, [strategy: :one_for_all, name: __MODULE__])
+    Supervisor.start_link(children, strategy: :one_for_all, name: __MODULE__)
   end
 end
