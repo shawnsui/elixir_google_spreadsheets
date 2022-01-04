@@ -20,7 +20,7 @@ defmodule GSS.Spreadsheet do
 
   @api_url_spreadsheet "https://sheets.googleapis.com/v4/spreadsheets/"
   @default_request_params [ssl: [{:versions, [:"tlsv1.2"]}]]
-  @max_rows GSS.config(:max_rows_per_request, 301)
+  @max_rows GSS.config(:max_rows_per_request, 100_000)
   @default_column_from GSS.config(:default_column_from, 1)
   @default_column_to GSS.config(:default_column_to, 26)
 
@@ -106,7 +106,8 @@ defmodule GSS.Spreadsheet do
   Append row in a spreadsheet after an index.
   """
   @spec append_row(pid, integer(), spreadsheet_data, Keyword.t()) :: :ok
-  def append_row(pid, row_index, [cell | _] = column_list, options \\ []) when is_binary(cell) or is_nil(cell) do
+  def append_row(pid, row_index, [cell | _] = column_list, options \\ [])
+      when is_binary(cell) or is_nil(cell) do
     gen_server_call(pid, {:append_rows, row_index, [column_list], options}, options)
   end
 
@@ -281,6 +282,8 @@ defmodule GSS.Spreadsheet do
     column_from = Keyword.get(options, :column_from, @default_column_from)
     column_to = Keyword.get(options, :column_to, @default_column_to)
     range = range(row_index, row_index, column_from, column_to)
+
+    IO.inspect(range)
 
     query =
       "#{spreadsheet_id}/values/#{maybe_attach_list(state)}#{range}" <>

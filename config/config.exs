@@ -29,7 +29,7 @@ use Mix.Config
 #
 
 config :elixir_google_spreadsheets,
-  max_rows_per_request: 301,
+  max_rows_per_request: 100_000,
   default_column_from: 1,
   default_column_to: 26
 
