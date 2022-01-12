@@ -6,7 +6,13 @@ defmodule GSS do
   use Application
 
   def start(_type, _args) do
-    GSS.Supervisor.init([])
+    config = Application.fetch_env!(:elixir_google_spreadsheets, :client)
+
+    if config != nil do
+      if Keyword.get(config, :credentials) != nil do
+        GSS.Supervisor.init([])
+      end
+    end
   end
 
   @doc """
