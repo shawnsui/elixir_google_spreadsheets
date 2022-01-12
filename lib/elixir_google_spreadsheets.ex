@@ -6,11 +6,13 @@ defmodule GSS do
   use Application
 
   def start(_type, _args) do
-    config = Application.fetch_env!(:elixir_google_spreadsheets, :client)
+    config = Application.get_env(:elixir_google_spreadsheets, :client)
 
     if config != nil do
       if Keyword.get(config, :credentials) != nil do
         GSS.Supervisor.init([])
+      else
+        Supervisor.start_link([], strategy: :one_for_all, name: __MODULE__)
       end
     end
   end
