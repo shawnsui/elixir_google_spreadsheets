@@ -283,8 +283,6 @@ defmodule GSS.Spreadsheet do
     column_to = Keyword.get(options, :column_to, @default_column_to)
     range = range(row_index, row_index, column_from, column_to)
 
-    IO.inspect(range)
-
     query =
       "#{spreadsheet_id}/values/#{maybe_attach_list(state)}#{range}" <>
         "?majorDimension=#{major_dimension}&valueRenderOption=#{value_render_option}" <>

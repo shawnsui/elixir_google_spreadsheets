@@ -10,50 +10,55 @@ defmodule GSS.Client.Supervisor do
   def start_link(_args \\ []), do: init([])
 
   def init([]) do
-    credentials = "GCP_CREDENTIALS" |> System.fetch_env!() |> Jason.decode!()
-    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-    source = {:service_account, credentials, scopes: scopes}
-
     config = Application.fetch_env!(:elixir_google_spreadsheets, :client)
     limiter_args = Keyword.take(config, [:max_demand, :interval, :max_interval])
+    credentials = Keyword.get(config, :credentials)
 
-    children = [
-      {Client, []},
-      %{
-        id: Limiter.Writer,
-        start:
-          {Limiter, :start_link,
-           [
-             limiter_args
-             |> Keyword.put(:clients, [{Client, partition: :write}])
-             |> Keyword.put(:name, Limiter.Writer)
-           ]}
-      },
-      %{
-        id: Limiter.Reader,
-        start:
-          {Limiter, :start_link,
-           [
-             limiter_args
-             |> Keyword.put(:partition, :read)
-             |> Keyword.put(:clients, [{Client, partition: :read}])
-             |> Keyword.put(:name, Limiter.Reader)
-           ]}
-      },
-      {Goth, name: GSS.Goth, source: source}
-    ]
+    if credentials != nil do
+      scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+      key = credentials |> Jason.decode!()
+      source = {:service_account, key, scopes: scopes}
 
-    request_workers =
-      for num <- 1..Keyword.get(config, :request_workers, 10),
-          {limiter, name} <- [{Limiter.Writer, Request.Write}, {Limiter.Reader, Request.Read}] do
-        name = :"#{name}#{num}"
-
+      children = [
+        {Client, []},
         %{
-          id: name,
-          start: {Request, :start_link, [[name: name, limiters: [{limiter, max_demand: 1}]]]}
-        }
-      end
+          id: Limiter.Writer,
+          start:
+            {Limiter, :start_link,
+             [
+               limiter_args
+               |> Keyword.put(:clients, [{Client, partition: :write}])
+               |> Keyword.put(:name, Limiter.Writer)
+             ]}
+        },
+        %{
+          id: Limiter.Reader,
+          start:
+            {Limiter, :start_link,
+             [
+               limiter_args
+               |> Keyword.put(:partition, :read)
+               |> Keyword.put(:clients, [{Client, partition: :read}])
+               |> Keyword.put(:name, Limiter.Reader)
+             ]}
+        },
+        {Goth, name: GSS.Goth, source: source}
+      ]
 
-    Supervisor.start_link(children ++ request_workers, strategy: :one_for_one, name: __MODULE__)
+      request_workers =
+        for num <- 1..Keyword.get(config, :request_workers, 10),
+            {limiter, name} <- [{Limiter.Writer, Request.Write}, {Limiter.Reader, Request.Read}] do
+          name = :"#{name}#{num}"
+
+          %{
+            id: name,
+            start: {Request, :start_link, [[name: name, limiters: [{limiter, max_demand: 1}]]]}
+          }
+        end
+
+      Supervisor.start_link(children ++ request_workers, strategy: :one_for_one, name: __MODULE__)
+    else
+      Supervisor.start_link([], strategy: :one_for_one, name: __MODULE__)
+    end
   end
 end

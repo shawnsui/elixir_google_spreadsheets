@@ -42,6 +42,7 @@ config :elixir_google_spreadsheets, :client,
   request_opts: [
     timeout: :timer.seconds(8),
     recv_timeout: :timer.seconds(5)
-  ]
+  ],
+  credentials: System.get_env("GCP_CREDENTIALS")
 
 import_config "#{Mix.env()}.exs"
